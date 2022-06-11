@@ -1,3 +1,5 @@
-# blackjack
-blackjack game in python
-current version is in blackjack.py
+# Blackjack
+
+Blackjack game in python
+
+Current version is in blackjack.py
