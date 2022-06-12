@@ -9,7 +9,6 @@
 import random
 import time
 import os
-width = os.get_terminal_size().columns
 from IPython.display import clear_output
 
 
@@ -225,13 +224,12 @@ class Dealer:
         zipped_lines = list(zip(*lines))
         formatted_card_output_side_by_side = ""
         for index, line in enumerate(list(zipped_lines)):
-            formatted_card_output_side_by_side += " "*(int(width/2 - 12*len(list(zipped_lines)[index])/2)) + "".join(list(zipped_lines)[index]) + "\n"
+            formatted_card_output_side_by_side += "".join(list(zipped_lines)[index]) + "\n"
         nl = '\n'
-        sentence_length = len(f"Dealer has {len(self.dealer_hand)} cards and {self.get_points()} points")
         if len(self.dealer_hand) < 1:
-            return f"{' '*int(width/2 - sentence_length/2)}Dealer has {len(self.dealer_hand)} cards and {self.get_points()} points"
+            return f"Dealer has {len(self.dealer_hand)} cards and {self.get_points()} points"
         else:
-            return f"{' '*int(width/2 - sentence_length/2)}Dealer has {len(self.dealer_hand)} cards and {self.get_points()} points \n{formatted_card_output_side_by_side}"
+            return f"Dealer has {len(self.dealer_hand)} cards and {self.get_points()} points \n{formatted_card_output_side_by_side}"
         
 # Instantiate dealer
 dealer = Dealer()
@@ -357,13 +355,12 @@ class Player:
         zipped_lines = list(zip(*lines))
         formatted_card_output_side_by_side = ""
         for index, line in enumerate(list(zipped_lines)):
-            formatted_card_output_side_by_side += " "*(int(width/2 - 12*len(list(zipped_lines)[index])/2)) + "".join(list(zipped_lines)[index]) + "\n"
+            formatted_card_output_side_by_side += "".join(list(zipped_lines)[index]) + "\n"
         nl = '\n'
-        sentence_length = len(f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points")
         if len(self.player_hand) < 1:
-            return f"{' '*int(width/2 - sentence_length/2)}{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
+            return f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
         else:
-            return f"{formatted_card_output_side_by_side}\n{' '*int(width/2 - sentence_length/2)}{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
+            return f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points \n{formatted_card_output_side_by_side}"
 
 
 # ## Create Function With Blackjack Game Logic
@@ -413,15 +410,15 @@ For No, type: No, no, N, or n
 
         response = ""
         while response.lower() not in acceptable_responses.keys():
-            print("Hit or Stand?".center(width))
+            print("Hit or Stand?")
             response = input().lower()
 
             # Check if response is valid
             if response.lower() not in acceptable_responses.keys():
-                print(f"""
-{"Please give a valid response.".center(width)}
-{"For Hit, type: Hit, hit, H, h, Y, y, or 1".center(width)}
-{"For Stand, type: Stand, stand, S, s, N, n, or 2".center(width)}
+                print("""
+            Please give a valid response.
+            For Hit, type: Hit, hit, H, h, Y, y, or 1
+            For Stand, type: Stand, stand, S, s, N, n, or 2
                                 """)
             else:
                 break
@@ -431,26 +428,46 @@ For No, type: No, no, N, or n
             
         
     # Set function to display complex print statements
-    def output(option: str, bet: bool = False) -> str:
-        current_bet_output=""
-        if bet == True:
-            current_bet_output = f"\nCurrent bet: {player.current_bet}"
-            
-        if option == "stats":
+    def output(option: str) -> str:
+        if option == "play_again":
             return f"""
 {player.name.title()}'s wins: {player.wins}
 {player.name.title()}'s losses: {player.losses}
 
-{player.name.title()}'s money: {player.money}{current_bet_output}
+{player.name.title()}'s money: {player.money}
             """
         if option == "show_table":
             return f"""
+{player.name.title()}'s wins: {player.wins}
+{player.name.title()}'s losses: {player.losses}
+
+{player.name.title()}'s money: {player.money}
+{player.name.title()}'s bet: {player.current_bet}
+
 {'-' * os.get_terminal_size()[0]}
-{dealer}
+{player}
 
 
 
-{player} 
+{dealer} 
+{'-' * os.get_terminal_size()[0]}
+            """
+        if option == "dealer_about_to_check_his_cards":
+            return f"""
+{player.name.title()}'s wins: {player.wins}
+{player.name.title()}'s losses: {player.losses}
+
+{player.name.title()}'s money: {player.money}
+{player.name.title()}'s bet: {player.current_bet}
+
+{'-' * os.get_terminal_size()[0]}
+{player}
+
+
+
+Dealer checks his cards...
+
+{dealer} 
 {'-' * os.get_terminal_size()[0]}
             """
 
@@ -504,14 +521,14 @@ For No, type: No, no, N, or n
         # Scenarios for if dealer goes over 21 
         #(you already checked for if you busted before standing so don't have to take those scenarios into account)
         if dealer.points > 21 and (player.points == 21) and (len(player.player_hand) == 2):
-            print(f"BLACKJACK! {player.name.title()} wins!".center(width))
-            print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.".center(width))
+            print(f"BLACKJACK! {player.name.title()} wins!")
+            print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.")
             player.win()
             player.money += int(2.5 * player.current_bet)
             ### INSERT PAYOUT (your initial bet back + 1.5x your initial bet matched by the dealer)
         elif dealer.points > 21:
-            print(f"Dealer busts. {player.name.title()} wins!".center(width))
-            print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.".center(width))
+            print(f"Dealer busts. {player.name.title()} wins!")
+            print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.")
             player.win()
             player.money += 2* player.current_bet
             ### INSERT PAYOUT (your initial bet back + your initial bet matched by the dealer))
@@ -519,26 +536,26 @@ For No, type: No, no, N, or n
         # Scenarios for if the dealer doesn't go over 21
         else:
             if player.points == dealer.points:
-                print("It's a tie!".center(width))
-                print(f"Your betting amount is returned (${player.current_bet}).".center(width))
+                print("It's a tie!")
+                print(f"Your betting amount is returned (${player.current_bet}).")
                 # Return betting money
                 player.money += player.current_bet
                 ### INSERT PAYOUT (PROBABLY NOTHING)
             elif (player.points > dealer.points) and (player.points == 21) and (len(player.player_hand) == 2):
-                print(f"BLACKJACK! {player.name.title()} wins!".center(width))
-                print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.".center(width))
+                print(f"BLACKJACK! {player.name.title()} wins!")
+                print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.")
                 player.win()
                 player.money += int(2.5 * player.current_bet)
                 ### INSERT PAYOUT (your initial bet back + 1.5x your initial bet matched by the dealer)
             elif player.points > dealer.points:
-                print(f"{player.name.title()} wins!".center(width))
-                print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.".center(width))
+                print(f"{player.name.title()} wins!")
+                print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.")
                 player.win()
                 player.money += 2* player.current_bet
                 ### INSERT PAYOUT (your initial bet back + your initial bet matched by the dealer))
             else:
-                print("Dealer wins".center(width))
-                print(f"You lose ${player.current_bet}.".center(width))
+                print("Dealer wins")
+                print(f"You lose ${player.current_bet}.")
                 player.lose()
 
     print("\n"*100)
@@ -600,23 +617,19 @@ For No, type: No, no, N, or n
                 checked = ace_check_player()  # This function does that
 
                 if checked == "bust":
-                    print(output("stats", bet = True))
                     print(output("show_table"))
                     time.sleep(2)
-                    print("BUST: You lose".center(width))
+                    print("BUST: You lose")
                     time.sleep(2)
-                    print("\n"*100)
-                    print(output("show_table"))
-                    print("BUST: You lose".center(width))
                     player.lose()
                     
                     # check if money left
                     if player.money <= 0:
-                        print("Game is over! You are bankrupt".center(width))
+                        print("Game is over! You are bankrupt")
                         bankrupt = True
                         break
 
-                    print(output("stats"))
+                    print(output("play_again"))
 
                     y_or_n = play_again()
 
@@ -633,7 +646,6 @@ For No, type: No, no, N, or n
                         break
 
             # Print out information
-            print(output("stats", bet = True))
             print(output("show_table"))
             
             # Game logic
@@ -650,38 +662,35 @@ For No, type: No, no, N, or n
             continue
 
         
-        print(output("stats", bet = True))
         print(output("show_table"))
 
         # Dealer checks his card
-        print("Dealer checks his cards...".center(width))
+        print("\n"*100)
+        print(output("dealer_about_to_check_his_cards"))
         time.sleep(3)
         dealer.show_cards()
         ace_check_dealer()
         print("\n"*100)
-        print(output("stats", bet = True))
         print(output("show_table"))
         time.sleep(3)
         while dealer.points <= 16:
-            print("Dealer picks up a card".center(width))
+            print("Dealer picks up a card")
             dealer.pickup()
             ace_check_dealer()
             time.sleep(1)
         
         print("\n"*100)
-        print(output("stats", bet = True))
         print(output("show_table"))
         time.sleep(1)
-        print("\n"*100)
-        print(output("show_table"))
+        print("\n")
         check_if_beat_dealer()
         
         # check if money left
         if player.money <= 0:
-            print("Game is over! You are bankrupt".center(width))
+            print("Game is over! You are bankrupt")
             break
         
-        print(output("stats"))
+        print(output("play_again"))
         
         y_or_n = play_again()
 
