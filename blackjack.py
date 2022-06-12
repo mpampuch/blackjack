@@ -711,7 +711,7 @@ blackjack()
 
 # get_ipython().system('jupyter nbconvert --to script blackjack.ipynb')
 # the following commands clean up the file to be used in the terminal
-## print("\n"*100) doesn't work outside of jupyter notebook, so equivalent command in other environment would be print("\\n"*100) (pushes everything out of view)
+## clear_output() doesn't work outside of jupyter notebook, so equivalent command in other environment would be print("\\n"*100) (pushes everything out of view)(this is added so clear_output() doesn't get changed at the start of the line by the following sed commands -> # get_ipython().system)
 ## exclude changing the clear_output() string in the sed command using # get_ipython().system/ ! (see here for more info https://stackoverflow.com/questions/38694081/executing-terminal-commands-in-jupyter-notebook)
 ## add a comment to all these unix commands in this block (which are executed by # get_ipython().system()) in python
 # get_ipython().system('sed \'/# get_ipython().system/ ! s/clear_output()/print("\\\\n"*100)/g\' blackjack.py | sed \'s/# get_ipython().system/# # get_ipython().system/g\' > tempfile.py')
