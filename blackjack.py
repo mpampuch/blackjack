@@ -252,6 +252,7 @@ class Player:
                  wins: int = 0,
                  losses: int = 0,
                  standing: bool = False,
+                 doubled_down: bool = False,
                  at_table: bool = True
                  ):
         self.name = name
@@ -261,6 +262,7 @@ class Player:
         self.wins = wins
         self.losses = losses
         self.standing = standing
+        self.doubled_down = doubled_down
         self.at_table = at_table
         self.player_hand = []
 
@@ -308,13 +310,15 @@ class Player:
     def hit(self):
         self.pickup()
         self.get_points()
-        print('"Hit me!"')
 
 #     def insurance(self):
 #         pass
         
-#     def double_down(self):
-#         pass
+    def double_down(self):
+        self.money -= self.current_bet
+        self.current_bet += self.current_bet
+        self.hit()
+        self.doubled_down = True
 
 #     def split(self):
 #         pass
@@ -336,6 +340,7 @@ class Player:
         self.player_hand = []
         self.points = 0
         self.standing = False
+        self.doubled_down = False
 
     def reset_money(self, amount: int = 1000):
         self.money = amount
@@ -401,27 +406,53 @@ For No, type: No, no, N, or n
 
     def hit_or_stand():
         nonlocal player # need this for player to be in the scope of this function for some reason
-        acceptable_responses = {"hit": "hit",
-                                "h": "hit",
-                                "y": "hit",
-                                "1": "hit",
-                                "stand": "stand",
-                                "s": "stand",
-                                "n": "stand",
-                                "2": "stand"
-                                }
+        question = ""
+        acceptable_responses = {}
+        double_down_aid = ""
+#         print(player.money)
+#         print(2 * player.current_bet)
+#         print(len(player.player_hand) == 2)
+        if (player.money >= player.current_bet) and (len(player.player_hand) == 2):
+            question = "Hit, Stand, or Double Down?"
+            acceptable_responses = {"hit": "hit",
+                                    "h": "hit",
+                                    "y": "hit",
+                                    "1": "hit",
+                                    "stand": "stand",
+                                    "s": "stand",
+                                    "n": "stand",
+                                    "2": "stand",
+                                    "double down": "double_down",
+                                    "doubledown": "double_down",
+                                    "dd": "double_down",
+                                    "d": "double_down",
+                                    "3": "double_down"
+                                    }
+            double_down_aid = "\nFor Doubling down, type: double down, doubledown, dd, d, or 3"
+        else:
+            question = "Hit or Stand?"
+            acceptable_responses = {"hit": "hit",
+                                    "h": "hit",
+                                    "y": "hit",
+                                    "1": "hit",
+                                    "stand": "stand",
+                                    "s": "stand",
+                                    "n": "stand",
+                                    "2": "stand"
+                                    }
+            double_down_aid = ""
 
         response = ""
         while response.lower() not in acceptable_responses.keys():
-            print("Hit or Stand?".center(width))
+            print(f"{question.center(width)}")
             response = input().lower()
 
             # Check if response is valid
             if response.lower() not in acceptable_responses.keys():
                 print(f"""
 {"Please give a valid response.".center(width)}
-{"For Hit, type: Hit, hit, H, h, Y, y, or 1".center(width)}
-{"For Stand, type: Stand, stand, S, s, N, n, or 2".center(width)}
+{"For Hit, type: hit, h, y, or 1".center(width)}
+{"For Stand, type: stand, s, n, or 2".center(width)}{double_down_aid.center(width)}
                                 """)
             else:
                 break
@@ -591,7 +622,7 @@ For No, type: No, no, N, or n
         bankrupt = False
         
         # Inner while loop executed until stand is said or bust
-        # Round ends when player stands or busts
+        # Round ends when player stands, doubles down, or busts
         while player.standing == False:
 
             # check if player has bust
@@ -629,8 +660,12 @@ For No, type: No, no, N, or n
                         break
                     elif y_or_n == "no":
                         player.leave_table()
-                        ### PRINT HOW MUCH MONEY THEY MADE
                         break
+                        
+            # check if doubled_down
+            if player.doubled_down == True:
+                print("\n"*100)
+                break
 
             # Print out information
             print(output("stats", bet = True))
@@ -698,7 +733,7 @@ For No, type: No, no, N, or n
 
 # ## Play Blackjack
 
-# In[8]:
+# In[ ]:
 
 
 blackjack()
@@ -706,7 +741,7 @@ blackjack()
 
 # ## Convert Jupyter Notebook to Python Script
 
-# In[9]:
+# In[ ]:
 
 
 # get_ipython().system('jupyter nbconvert --to script blackjack.ipynb')
