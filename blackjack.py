@@ -37,9 +37,9 @@ values = {"Ace": 11, # Default value of Ace is 11 unless total is greater than 2
           "King": 10}
 
 # Test ace conversion
-# ranks = ["Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace"]
+# ranks = ["Ace", "Ten"]
 # values = {"Ace": 11, # Default value of Ace is 11 unless total is greater than 21 in that case the value of Ace has to be changed to 1
-#           "Two": 2,
+#           "Ten": 10
 #          }
 
 
@@ -249,7 +249,9 @@ class Player:
                  money: int = 1000,
                  points: int = 0,
                  current_bet: int = 0,
+                 insurance_bet: int = 0,
                  wins: int = 0,
+                 ties: int = 0,
                  losses: int = 0,
                  standing: bool = False,
                  doubled_down: bool = False,
@@ -259,25 +261,43 @@ class Player:
         self.money = money
         self.points = points
         self.current_bet = current_bet
+        self.insurance_bet = insurance_bet
         self.wins = wins
+        self.ties = ties
         self.losses = losses
         self.standing = standing
         self.doubled_down = doubled_down
         self.at_table = at_table
         self.player_hand = []
+# ATTEMPT AT SPLITTING
+#         self.player_hand_2 = []
+#         self.player_hand_3 = []
+#         self.player_hand_4 = []
+#         self.points_2 = 0
+#         self.points_3 = 0
+#         self.points_4 = 0
 
-    def get_points(self):
-        self.points = sum(Card.value for Card in self.player_hand)
-        return self.points
+    def get_points(self, hand: int = 1):
+        if hand == 1:
+            self.points = sum(Card.value for Card in self.player_hand)
+            return self.points
+# ATTEMPT AT SPLITTING
+#         elif hand == 2:
+#             self.points_2 = sum(Card.value for Card in self.player_hand_2)
+#             return self.points_2
+#         elif hand == 3:
+#             self.points_3 = sum(Card.value for Card in self.player_hand_3)
+#             return self.points_3
+#         elif hand == 4:
+#             self.points_4 = sum(Card.value for Card in self.player_hand_4)
+#             return self.points_4
+#         else:
+#             print("hand does not exist")
 
     def bet(self):
-        # DISREGARD: every round, can place bet up to $1000. Also have to make sure you have enough money to bet
-#         if self.money >= 1000:
-#             acceptable_betting_range = range(1, 1001)  # Bet from $1-$1000
-#             betting_amount_available = 1000
-#         else:
-        acceptable_betting_range = range(1, self.money + 1)  # Bet from $1-available money
+        # Bet from $1-available money
         betting_amount_available = self.money
+        acceptable_betting_range = range(1, betting_amount_available + 1)
 
         # Keep asking until a valid response is given
         betting_amount = ""
@@ -297,22 +317,57 @@ class Player:
             else:
                 self.current_bet = int(betting_amount)
                 self.money -= self.current_bet
+                print("\n"*100)
                 break
 
-#         print("\n"*100) 
-        print("\n")
-        print(f"You have bet ${self.current_bet} and have ${self.money} total")
+#         print("\n")
+#         print(f"You have bet ${self.current_bet} and have ${self.money} total")
 
-    def pickup(self):
-        self.player_hand.append(blackjack_deck.draw_card(faceup=True))
-        self.get_points()
+    def insurance(self):
+        # betting amount available is half that of current bet, unless you have less money than that, in which case only up all of your money
+        betting_amount_available = int(min(self.money, int(self.current_bet / 2)))
+        acceptable_betting_range = range(1, betting_amount_available + 1)  
+        
+        # Keep asking until a valid response is given
+        betting_amount = ""
+        betting_amount_int = 0
+        while (betting_amount.isdigit() is False) or (betting_amount_int not in acceptable_betting_range):
+            print(f"Place your insurance bet (you have ${betting_amount_available} available for betting)")
+            betting_amount = input()
+
+            # check if input is valid
+            if betting_amount.isdigit() is False:
+                print("Not a valid betting amount. Please input a whole number")
+            elif int(betting_amount) not in acceptable_betting_range:
+                betting_amount_int = int(betting_amount)
+                print(f"Not a valid betting amount. Please choose a number between 1 and {betting_amount_available}")
+
+            # if input is valid
+            else:
+                self.insurance_bet = int(betting_amount)
+                self.money -= self.insurance_bet
+                break     
+
+    def pickup(self, hand: int = 1):
+        if hand == 1:
+            self.player_hand.append(blackjack_deck.draw_card(faceup=True))
+            self.get_points(hand = 1)
+# ATTEMPT AT SPLITTING
+#         elif hand == 2:
+#             self.player_hand_2.append(blackjack_deck.draw_card(faceup=True))
+#             self.get_points(hand = 2)
+#         elif hand == 3:
+#             self.player_hand_3.append(blackjack_deck.draw_card(faceup=True))
+#             self.get_points(hand = 3)
+#         elif hand == 4:
+#             self.player_hand_4.append(blackjack_deck.draw_card(faceup=True))
+#             self.get_points(hand = 4)
+#         else:
+#             print("hand does not exist")
 
     def hit(self):
         self.pickup()
         self.get_points()
-
-#     def insurance(self):
-#         pass
         
     def double_down(self):
         self.money -= self.current_bet
@@ -332,19 +387,30 @@ class Player:
 
     def win(self):
         self.wins += 1
+        
+    def tie(self):
+        self.ties += 1
 
     def lose(self):
         self.losses += 1
 
     def reset_cards(self):
         self.player_hand = []
+        self.player_hand_2 = []
         self.points = 0
+# ATTEMPT AT SPLITTING
+#         self.points_2 = 0
         self.standing = False
         self.doubled_down = False
 
     def reset_money(self, amount: int = 1000):
         self.money = amount
         self.current_bet = 0
+        self.insurance_bet = 0
+        
+    def reset_bets(self):
+        self.current_bet = 0
+        self.insurance_bet = 0
 
     def reset_wins_and_losses(self):
         self.wins = 0
@@ -354,6 +420,7 @@ class Player:
         Player.__init__(self, name=self.name)
 
     def __str__(self) -> str:
+        # Format cards
         gen_exp = (card for card in self.player_hand)
         new_list = []
         for x in gen_exp:
@@ -363,12 +430,41 @@ class Player:
         formatted_card_output_side_by_side = ""
         for index, line in enumerate(list(zipped_lines)):
             formatted_card_output_side_by_side += " "*(int(width/2 - 12*len(list(zipped_lines)[index])/2)) + "".join(list(zipped_lines)[index]) + "\n"
+       
+    # ATTEMPT AT SPLITTING
+        # Format cards in split deck
+        ## MADE MISTAKE HERE. ADDING SPLITTING WAS A LAST MINUTE IDEA SO 
+        ## DIDN'T REALLY MAKE OBJECTS PROPERLY TO ACCOUNT FOR THIS. SHOULD HAVE MADE A
+        ## HAND CLASS SEPARATE FROM THE PLAYER AND DEALERS. BUT DON'T HAVE TIME DO THIS THIS
+        ## SO I WILL JUST HARD CODE ALL THE POSSIBLE SCENARIOS
+        ## CAN HAVE A MAXIMUM OF 4 SPLIT DECKS
+
+# ATTEMPT AT SPLITTING
+#         if len(self.player_hand_2) > 0:
+#             gen_exp_2 = (card for card in self.player_hand_2)
+#             new_list_2 = []
+#             for y in gen_exp_2:
+#                 new_list_2.append(Card.ascii_version_of_card(y))
+#             lines_2 = [card.splitlines() for card in new_list_2]
+#             zipped_lines_2 = list(zip(*lines_2))
+#             formatted_card_output_side_by_side_2 = ""
+#             for index, line in enumerate(list(zipped_lines_2)):
+#                 formatted_card_output_side_by_side_2 += " "*(int(width/2 - 12*len(list(zipped_lines_2)[index])/2)) + "".join(list(zipped_lines_2)[index]) + "\\n"
+#             cards_1_sentence = f"{self.name.title()}'s first hand:"
+#             cards_2_sentence = f"{self.name.title()}'s second hand:"
+#             points_sentence_1 = f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points in his first hand"
+#             points_sentence_2 = f"{self.name.title()} has {len(self.player_hand_2)} cards and {self.get_points(hand = 2)} points in his second hand"
+
+        # Backslash can't get evaluated in f-string so have to set it in variable
         nl = '\n'
-        sentence_length = len(f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points")
+        points_sentence = f"{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
         if len(self.player_hand) < 1:
             return f"{' '*int(width/2 - sentence_length/2)}{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
+# ATTEMPT AT SPLITTING
+#         elif len(self.player_hand_2) > 0:
+#             return f"{' '*int(width/2 - len(cards_1_sentence)/2)}{cards_1_sentence}\n{formatted_card_output_side_by_side}\n{' '*int(width/2 - len(points_sentence_1)/2)}{points_sentence_1}\n\n{' '*int(width/2 - len(cards_2_sentence)/2)}{cards_2_sentence}\n{formatted_card_output_side_by_side_2}\n{' '*int(width/2 - len(points_sentence_2)/2)}{points_sentence_2}"
         else:
-            return f"{formatted_card_output_side_by_side}\n{' '*int(width/2 - sentence_length/2)}{self.name.title()} has {len(self.player_hand)} cards and {self.get_points()} points"
+            return f"{formatted_card_output_side_by_side}\n{' '*int(width/2 - len(points_sentence)/2)}{points_sentence}"
 
 
 # ## Create Function With Blackjack Game Logic
@@ -406,42 +502,81 @@ For No, type: No, no, N, or n
 
     def hit_or_stand():
         nonlocal player # need this for player to be in the scope of this function for some reason
-        question = ""
-        acceptable_responses = {}
-        double_down_aid = ""
-#         print(player.money)
-#         print(2 * player.current_bet)
-#         print(len(player.player_hand) == 2)
-        if (player.money >= player.current_bet) and (len(player.player_hand) == 2):
-            question = "Hit, Stand, or Double Down?"
-            acceptable_responses = {"hit": "hit",
-                                    "h": "hit",
-                                    "y": "hit",
-                                    "1": "hit",
-                                    "stand": "stand",
-                                    "s": "stand",
-                                    "n": "stand",
-                                    "2": "stand",
-                                    "double down": "double_down",
-                                    "doubledown": "double_down",
-                                    "dd": "double_down",
-                                    "d": "double_down",
-                                    "3": "double_down"
-                                    }
-            double_down_aid = "\nFor Doubling down, type: double down, doubledown, dd, d, or 3"
-        else:
-            question = "Hit or Stand?"
-            acceptable_responses = {"hit": "hit",
-                                    "h": "hit",
-                                    "y": "hit",
-                                    "1": "hit",
-                                    "stand": "stand",
-                                    "s": "stand",
-                                    "n": "stand",
-                                    "2": "stand"
-                                    }
-            double_down_aid = ""
+        options = ["Hit", "Stand"]
+        acceptable_responses = {
+            "hit": "hit",
+            "h": "hit",
+            "y": "hit",
+            "1": "hit",
+            "stand": "stand",
+            "s": "stand",
+            "n": "stand",
+            "2": "stand"
+        }
+        extra_aid = []
+        nl = "\n"
+        
+        # Check for doubling down
+        if (
+            player.money >= player.current_bet and 
+            len(player.player_hand) == 2
+        ):
+            options.append("Double down")
+            acceptable_responses.update(
+                {
+                    "double down": "double_down",
+                    "doubledown": "double_down",
+                    "dd": "double_down",
+                    "d": "double_down",
+                    "3": "double_down"
+                }
+            )
+            extra_aid.append("For Doubling down, type: double down, doubledown, dd, d, or 3")
+        
+        # Check for splitting hand
+        if (
+            len(player.player_hand) == 2 and
+            player.player_hand[0].rank == player.player_hand[1].rank
+        ):
+            options.append("Split")
+            acceptable_responses.update(
+                {
+                    "split": "split",
+                    "ss": "split",
+                    "4": "split"
+                }
+            )
+            extra_aid.append("For Splitting, type: split, ss, or 4")
+        
+        # Check if placing insuarance bet
+        if (
+            player.money > 0 and
+            player.current_bet > 1 and
+            player.insurance_bet == 0 and
+            len(player.player_hand) == 2 and 
+            dealer.dealer_hand[1].rank == "Ace"
+        ):
+            insurance_bet_warning = f"""{"Dealer is showing an Ace. Would you like to place an insurance bet?".center(width)}
+{"(Payout is 2:1 on the insurance line and up to half of your current bet can be wagered)".center(width)}
+            """
+            print(insurance_bet_warning)
+            options.append("place an Insurance Bet")
+            acceptable_responses.update(
+                {
+                    "insurance bet": "insurance",
+                    "insurancebet": "insurance",
+                    "insurance": "insurance",
+                    "bet": "insurance",
+                    "ib": "insurance",
+                    "i": "insurance",
+                    "b": "insurance",
+                    "5": "insurance",
+                }
+            )
+            extra_aid.append("For Placing an Insurance Bet, type: insurance bet, insurancebet, insurance, bet, ib, i, b, or 5")
+        
 
+        question = f"{', '.join(list(option for option in options[:-1]))} or {options[-1]}?".lstrip(",")
         response = ""
         while response.lower() not in acceptable_responses.keys():
             print(f"{question.center(width)}")
@@ -451,8 +586,9 @@ For No, type: No, no, N, or n
             if response.lower() not in acceptable_responses.keys():
                 print(f"""
 {"Please give a valid response.".center(width)}
-{"For Hit, type: hit, h, y, or 1".center(width)}
-{"For Stand, type: stand, s, n, or 2".center(width)}{double_down_aid.center(width)}
+{"For Hitting, type: hit, h, y, or 1".center(width)}
+{"For Standing, type: stand, s, n, or 2".center(width)}
+{nl.join(list(aid.center(width) for aid in extra_aid))}
                                 """)
             else:
                 break
@@ -464,15 +600,20 @@ For No, type: No, no, N, or n
     # Set function to display complex print statements
     def output(option: str, bet: bool = False) -> str:
         current_bet_output=""
+        insurance_bet_output=""
         if bet == True:
             current_bet_output = f"\nCurrent bet: {player.current_bet}"
+        if player.insurance_bet > 0:
+            insurance_bet_output= f"\nInsurance bet: {player.insurance_bet}"
+            
             
         if option == "stats":
             return f"""
 {player.name.title()}'s wins: {player.wins}
+{player.name.title()}'s ties: {player.ties}
 {player.name.title()}'s losses: {player.losses}
 
-{player.name.title()}'s money: {player.money}{current_bet_output}
+{player.name.title()}'s money: {player.money}{current_bet_output}{insurance_bet_output}
             """
         if option == "show_table":
             return f"""
@@ -532,49 +673,96 @@ For No, type: No, no, N, or n
                 break
 
     def check_if_beat_dealer():
+       
+        # Message for if insurance bet has been placed
+        if player.insurance_bet > 0:
+            insurance_bet_message = f"Your insurance bet of ${player.insurance_bet} is lost.".center(width)
+        else:
+            insurance_bet_message = ""
+            
+        
         # Scenarios for if dealer goes over 21 
         #(you already checked for if you busted before standing so don't have to take those scenarios into account)
-        if dealer.points > 21 and (player.points == 21) and (len(player.player_hand) == 2):
+        if (
+            dealer.points > 21 and 
+            player.points == 21 and 
+            len(player.player_hand) == 2
+        ):
             print(f"BLACKJACK! {player.name.title()} wins!".center(width))
             print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.".center(width))
+            print(insurance_bet_message)
             player.win()
             player.money += int(2.5 * player.current_bet)
-            ### INSERT PAYOUT (your initial bet back + 1.5x your initial bet matched by the dealer)
+            
         elif dealer.points > 21:
             print(f"Dealer busts. {player.name.title()} wins!".center(width))
             print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.".center(width))
+            print(insurance_bet_message)
             player.win()
             player.money += 2* player.current_bet
-            ### INSERT PAYOUT (your initial bet back + your initial bet matched by the dealer))
         
         # Scenarios for if the dealer doesn't go over 21
         else:
             if player.points == dealer.points:
                 print("It's a tie!".center(width))
-                print(f"Your betting amount is returned (${player.current_bet}).".center(width))
-                # Return betting money
+                print(f"Your initial bet is returned (${player.current_bet}).".center(width))
+                if (
+                    player.points == 21 and
+                    dealer.points == 21 and
+                    len(dealer.dealer_hand) == 2 and
+                    player.insurance_bet > 0
+                ):
+                    print(f"Blackjack tie so your insurance bet of {player.insurance_bet} is returned as well.".center(width))
+
+                print(insurance_bet_message)
+                player.tie()
                 player.money += player.current_bet
-                ### INSERT PAYOUT (PROBABLY NOTHING)
-            elif (player.points > dealer.points) and (player.points == 21) and (len(player.player_hand) == 2):
+
+            elif (
+                player.points > dealer.points and 
+                player.points == 21 and 
+                len(player.player_hand) == 2
+            ):
                 print(f"BLACKJACK! {player.name.title()} wins!".center(width))
                 print(f"Payout is 2.5x your initial bet. You recieve ${int(2.5 * player.current_bet)}.".center(width))
+                print(insurance_bet_message)
                 player.win()
                 player.money += int(2.5 * player.current_bet)
-                ### INSERT PAYOUT (your initial bet back + 1.5x your initial bet matched by the dealer)
+
             elif player.points > dealer.points:
                 print(f"{player.name.title()} wins!".center(width))
                 print(f"Payout is 2x your initial bet. You recieve ${2 * player.current_bet}.".center(width))
+                print(insurance_bet_message)
                 player.win()
-                player.money += 2* player.current_bet
-                ### INSERT PAYOUT (your initial bet back + your initial bet matched by the dealer))
+                player.money += 2 * player.current_bet
+
+            # Scenarios for Dealer winning
             else:
-                print("Dealer wins".center(width))
-                print(f"You lose ${player.current_bet}.".center(width))
-                player.lose()
+                if (
+                    player.insurance_bet > 0 and
+                    dealer.points == 21 and
+                    len(dealer.dealer_hand) == 2
+                ):
+                    print("Dealer wins with blackjack.".center(width))
+                    print(f"Payout is 2x your insurance bet. You recieve ${2 * player.insurance_bet}.".center(width))
+                    print(f"Your initial bet of ${player.current_bet} is lost.".center(width))
+                    player.lose()
+                    player.money += 2 * player.insurance_bet
+                elif (
+                    dealer.points == 21 and
+                    len(dealer.dealer_hand) == 2
+                ):
+                    print("Dealer wins with blackjack".center(width))
+                    print(f"You lose ${player.current_bet + player.insurance_bet}.".center(width))
+                    player.lose()
+                else:
+                    print("Dealer wins".center(width))
+                    print(f"You lose ${player.current_bet + player.insurance_bet}.".center(width))
+                    player.lose()
 
     print("\n"*100)
+    
     # Set player name for player instance
-
     player_name = ""
     while player_name == "":
         print("What is your name?")
@@ -616,10 +804,15 @@ For No, type: No, no, N, or n
         dealer.pickup()
         player.pickup()
         dealer.pickup()
+        player.pickup(hand = 2)
+        player.pickup(hand = 2)
+
 
         # variable for breaking out of loop
         y_or_n = ""
         bankrupt = False
+        
+        
         
         # Inner while loop executed until stand is said or bust
         # Round ends when player stands, doubles down, or busts
@@ -634,12 +827,11 @@ For No, type: No, no, N, or n
                     print(output("stats", bet = True))
                     print(output("show_table"))
                     time.sleep(2)
-                    print("BUST: You lose".center(width))
+                    print("BUST!".center(width))
+                    print(f"You lose ${player.current_bet + player.insurance_bet}.".center(width))
                     time.sleep(2)
-                    print("\n"*100)
-                    print(output("show_table"))
-                    print("BUST: You lose".center(width))
                     player.lose()
+                    player.reset_bets()
                     
                     # check if money left
                     if player.money <= 0:
@@ -670,7 +862,7 @@ For No, type: No, no, N, or n
             # Print out information
             print(output("stats", bet = True))
             print(output("show_table"))
-            
+
             # Game logic
             hit_or_stand()
             ace_check_player()
@@ -697,11 +889,18 @@ For No, type: No, no, N, or n
         print(output("stats", bet = True))
         print(output("show_table"))
         time.sleep(3)
+        first_loop = True
         while dealer.points <= 16:
+            if first_loop == False:
+                print("\n"*100)
+                print(output("stats", bet = True))
+                print(output("show_table"))
+                time.sleep(2)
+            first_loop = False
             print("Dealer picks up a card".center(width))
             dealer.pickup()
             ace_check_dealer()
-            time.sleep(1)
+            time.sleep(1.5)
         
         print("\n"*100)
         print(output("stats", bet = True))
@@ -710,6 +909,11 @@ For No, type: No, no, N, or n
         print("\n"*100)
         print(output("show_table"))
         check_if_beat_dealer()
+        
+        ### HERE WOULD BE WHERE YOU WOULD HAVE TO PUT AN IF CONDITIONAL TO CHECK IF THE PLAYER STILL HAS OTHER HANDS ###
+        
+        time.sleep(2)
+        player.reset_bets()
         
         # check if money left
         if player.money <= 0:
@@ -739,6 +943,76 @@ For No, type: No, no, N, or n
 blackjack()
 
 
+# In[ ]:
+
+
+# ATTEMPT AT SPLITTING
+# # Test list nesting
+# test_list = [2, 2]
+
+# # check if elements in list are same
+# if test_list[0] == test_list[1]:
+#     test_list[0] = list(map(int, list(str(test_list[0]))))
+#     test_list[1] = list(map(int, list(str(test_list[1]))))
+    
+# # check if 
+# dealer.reset()
+# player.reset_cards()
+# blackjack_deck.reset()
+# blackjack_deck.shuffle()
+# player=Player(name = "Mark")
+# player.pickup()
+# dealer.pickup()
+# player.pickup()
+# dealer.pickup()
+
+
+# print(type(player.player_hand[0]))
+# if type(type(player.player_hand[0])) != "__main__.Card":
+#     print("YES")
+# if player.player_hand[0].rank == player.player_hand[1].rank:
+#     player.player_hand[0] = [player.player_hand[0]]
+#     player.player_hand[1] = [player.player_hand[1]]
+#     print(player.player_hand)
+# print(type(player.player_hand[0]))
+
+# # if type(player.player_hand[0]) == list:
+# #     print(True)
+# # print(type(player.player_hand[0]))
+
+# dealer.reset()
+# player.reset_cards()
+# blackjack_deck.reset()
+# blackjack_deck.shuffle()
+
+
+# In[ ]:
+
+
+# ATTEMPT AT SPLITTING
+# Test function to check for recursion level
+# def grab_r_level(x: list) -> int:
+#     end = False
+#     count = 0
+#     while type(x) == list:
+#         print(f"x = {x}")
+#         x = x.pop()
+#         count += 1
+#         print(f"count = {count}")
+#     return count
+# test_list = [[[1]]]
+# print(grab_r_level(test_list))
+
+
+# In[ ]:
+
+
+# a = []
+# print(type(a))
+# if type(a) == list:
+#     print(True)
+
+
 # ## Convert Jupyter Notebook to Python Script
 
 # In[ ]:
@@ -751,4 +1025,10 @@ blackjack()
 ## add a comment to all these unix commands in this block (which are executed by # get_ipython().system()) in python
 # get_ipython().system('sed \'/# get_ipython().system/ ! s/clear_output()/print("\\\\n"*100)/g\' blackjack.py | sed \'s/# get_ipython().system/# # get_ipython().system/g\' > tempfile.py')
 # get_ipython().system('mv tempfile.py blackjack.py')
+
+
+# In[ ]:
+
+
+
 
